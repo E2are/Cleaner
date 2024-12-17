@@ -35,14 +35,14 @@ public class BathBomb : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        BombPool = new ObjectPool<BathBombPrefab>(CreateBullet, OnGetBullet, OnReleaseBullet, OnDestroyBullet, true, 5, 100);
-        MistPool = new ObjectPool<BathBombMist>(CreateMist, OnGetMist, OnReleaseMist, OnDestroyMist, true, 10, 10);
+        BombPool = new ObjectPool<BathBombPrefab>(CreateBullet, OnGetBullet, OnReleaseBullet, OnDestroyBullet, true, 15, 100);
+        MistPool = new ObjectPool<BathBombMist>(CreateMist, OnGetMist, OnReleaseMist, OnDestroyMist, true, 15, 100);
         Throw();
     }
 
     void Throw()
     {
-        if (Input.GetKeyDown(ThrowKey) && DelayTimer > AttackDelay&& stackedBomb > 0 && !GameManager.Instance.IsCinemachining && !GameManager.Instance.Paused)
+        if (Input.GetKeyDown(ThrowKey) && DelayTimer > AttackDelay&& stackedBomb > 0 && !GameManager.Instance.IsCinemachining && !GameManager.Instance.Paused && !GameManager.Instance.Dead)
         {
             stackedBomb--;
             BombAnim.SetTrigger("Throwing");
@@ -53,7 +53,7 @@ public class BathBomb : MonoBehaviour
             DelayTimer += Time.deltaTime;
         }
 
-        if(stackedBomb < LimitOfStackableBombs && ChargingTimer > 3f)
+        if(stackedBomb < LimitOfStackableBombs && ChargingTimer > 5f)
         {
             stackedBomb++;
             ChargingTimer = 0f;
@@ -66,7 +66,7 @@ public class BathBomb : MonoBehaviour
         else
         {
             ChargingTimer += Time.deltaTime;
-            bombStats.GetComponent<Image>().fillAmount = ChargingTimer / 3f;
+            bombStats.GetComponent<Image>().fillAmount = ChargingTimer / 5f;
         }
 
         bombStats.GetComponentInChildren<TMP_Text>().text = "X " + stackedBomb;
@@ -83,6 +83,7 @@ public class BathBomb : MonoBehaviour
         BathBombPrefab Bomb = BombPool.Get();
         Bomb.transform.position = ThrowPos.position;
         Bomb.GetComponent<BathBombPrefab>().IsMistBomb = true;
+        Bomb.GetComponent<BathBombPrefab>().Target = GameManager.Instance.PC.transform;
         Bomb.GetComponent<Rigidbody>().velocity = GameManager.Instance.PM.rigid.velocity;
         Bomb.GetComponent<Rigidbody>().AddForce(PlayerCam.transform.forward * ThrowForce + Vector3.up * ThrowForce/3f, ForceMode.Impulse);
         Bomb.SetParentScript(this);

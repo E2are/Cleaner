@@ -12,9 +12,12 @@ public class BathBombPrefab : MonoBehaviour
     public float Dmg = 0;
     float DTimer = 0;
     public float TickDamageDelay = 0.3f;
+    
     [Header("Type")]
     public bool IsMistBomb;
-    [Header("Mist")]
+    public Transform Target;
+    public GameObject Appearence;
+    [Header("Effect")]
     public GameObject MistPrefab;
     public void SetManagerPool(IObjectPool<BathBombPrefab> pool)
     {
@@ -29,37 +32,27 @@ public class BathBombPrefab : MonoBehaviour
     private void Update()
     {
         DTimer += Time.deltaTime;    
+        if(Target!= null)
+        {
+            Appearence.transform.forward = Target.forward;
+        }
     }
 
     void DetonateBomb()
     {
         if (managerPool != null)
         {
-            managerPool.Release(this);
             BathBombMist Mist = Bomb.MistPool.Get();
             Mist.transform.position = transform.position;
             Mist.TickDamageDelay = TickDamageDelay;
             Mist.Dmg = Dmg;
             Mist.SetManagerPool(Bomb.MistPool);
+            managerPool.Release(this);
         }
         if(!IsMistBomb)
         {
-
-        }
-        DTimer = 0;
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if ((collision.gameObject.CompareTag("Enemy") || collision.gameObject.layer == LayerMask.GetMask("Water")) && IsMistBomb)
-        {
-            DetonateBomb();
-        }
-
-        if (!IsMistBomb)
-        {
             Collider[] HitCheck = Physics.OverlapSphere(transform.position, GetComponent<SphereCollider>().radius * 4);
-            foreach(Collider col in HitCheck)
+            foreach (Collider col in HitCheck)
             {
                 if (col.CompareTag("Player"))
                 {
@@ -71,6 +64,21 @@ public class BathBombPrefab : MonoBehaviour
             BombEft.GetComponent<Effect>().LookAtTarget = true;
             BombEft.transform.localScale *= GetComponent<SphereCollider>().radius * 4f;
             Destroy(gameObject);
+        }
+        DTimer = 0;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        if ((collision.gameObject.CompareTag("Enemy") || collision.gameObject.layer == LayerMask.GetMask("Water")) && IsMistBomb)
+        {
+            collision.gameObject.GetComponent<IDamageAbleProps>().OnDamaged(Dmg * 5f, (collision.transform.position - transform.position).normalized);
+            DetonateBomb();
+        }
+
+        if (!IsMistBomb)
+        {
+            DetonateBomb();
         }
     }
 

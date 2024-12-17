@@ -7,7 +7,7 @@ public class WeaponAnim : MonoBehaviour
     public BubbleGun BG;
     public Mop MP;
     public BathBomb BB;
-
+    public AudioClip ReloadClip;
     public void WeaponFullyHolded()
     {
         GetComponent<Animator>().SetBool("WeaponIsHolded",true);
@@ -16,6 +16,11 @@ public class WeaponAnim : MonoBehaviour
     {
         BG.shootAble = false;
         GameManager.Instance.RemainedCartridgeCount--;
+    }
+
+    public void PlayReloadClip()
+    {
+        GameManager.Instance.BGun.AS.PlayOneShot(ReloadClip);
     }
 
     public void ReloadEnd()

@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace TransitionScreenPackage
 {
@@ -13,15 +14,41 @@ namespace TransitionScreenPackage
       public delegate void FinishedHide();
       public FinishedHide FinishedHideEvent;
 
-      public void Reveal()
-      {
-         _animator.SetTrigger("Reveal");
-      }
+        AudioSource AS;
+        public AudioClip LoadSoundClip;
 
-      public void Hide()
-      {
-         _animator.SetTrigger("Hide");
-      }
+        private void Start()
+        {
+            AS = GetComponent<AudioSource>();
+            GraphicRaycaster GR = GetComponent<GraphicRaycaster>();
+            if ((GR != null))
+            {
+                GR.enabled = false;
+            }
+        }
+        public void Reveal()
+        {
+            _animator.SetTrigger("Reveal");
+        }
+
+        public void Hide()
+        {
+            _animator.SetTrigger("Hide");
+        }
+
+        public void PlayLoadSound()
+        {
+            if (LoadSoundClip != null && AS != null)
+            {
+                AS.clip = LoadSoundClip;
+                AS.Play();
+            }
+            GraphicRaycaster GR = GetComponent<GraphicRaycaster>();
+            if ((GR != null))
+            {
+                GR.enabled = false;
+            }
+        }
 
       public void OnFinishedHideAnimation()
       {
@@ -34,6 +61,11 @@ namespace TransitionScreenPackage
       {
             // Subscribe to this event, if you'd like to know when it's revealed
             GetComponent<Animator>().SetBool("AnimFullyLoaded", true);
+            GraphicRaycaster GR = GetComponent<GraphicRaycaster>();
+            if ((GR != null))
+            {
+                GR.enabled = true;
+            }
             FinishedRevealEvent?.Invoke();
       }
    }

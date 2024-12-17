@@ -22,7 +22,7 @@ public class audioPlayer : MonoBehaviour
     public AudioClip waterSlidingClip;
     public AudioClip[] jumpClips;
     public AudioClip[] water_jumpClips;
-
+    public AudioClip[] DeathClips;
 
     private void Start()
     {

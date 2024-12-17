@@ -19,6 +19,8 @@ public class PlayerMove : MonoBehaviour, IDamageAbleProps
 
     public float groundDrag;
 
+    bool Invincible = false;
+
     [Header("Jumping")]
     public float jumpForce;
     public float jumpCooldown;
@@ -50,6 +52,7 @@ public class PlayerMove : MonoBehaviour, IDamageAbleProps
     public audioPlayer AP;
     public Transform orientation;
     public PlayerCam cam;
+    public GameObject WaterSplashPrefab;
 
     float horizontalInput;
     float verticalInput;
@@ -77,7 +80,7 @@ public class PlayerMove : MonoBehaviour, IDamageAbleProps
 
     private void Awake()
     {
-        
+
     }
     private void Start()
     {
@@ -87,36 +90,39 @@ public class PlayerMove : MonoBehaviour, IDamageAbleProps
         AP = GetComponentInChildren<audioPlayer>();
 
         startYScale = transform.localScale.y;
+
+        transform.position = GameManager.Instance.SavePosition.Points[GameManager.Instance.SavePosition.current_SavePoint_Index];
     }
 
     private void Update()
     {
-        if (!GameManager.Instance.Paused)
+        if(Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.I))
         {
-            if (!GameManager.Instance.IsCinemachining)
+            Invincible = true;
+        }
+        if (!GameManager.Instance.Dead)
+        {
+            if (!GameManager.Instance.Paused)
             {
-                grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround) || Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, LayerMask.GetMask("Water"));
+                if (!GameManager.Instance.IsCinemachining)
+                {
+                    grounded = Physics.Raycast(transform.position, Vector3.down, playerHeight * 0.5f + 0.2f, whatIsGround);
 
-                MyInput();
-                SpeedControl();
-                StateHandler();
+                    MyInput();
+                    SpeedControl();
+                    StateHandler();
 
-                if (grounded)
-                    rigid.drag = groundDrag;
-                else
-                    rigid.drag = 0;
-            }
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                GameManager.Instance.Pause();
+                    if (grounded)
+                        rigid.drag = groundDrag;
+                    else
+                        rigid.drag = 0;
+                }
             }
         }
         else
         {
-            if (Input.GetKeyDown(KeyCode.Escape))
-            {
-                GameManager.Instance.UnPause();
-            }
+            GetComponentInChildren<CapsuleCollider>().height = crouchYScale;
+            rigid.drag = 1;
         }
     }
 
@@ -145,17 +151,50 @@ public class PlayerMove : MonoBehaviour, IDamageAbleProps
             crouching = true;
         }
 
-        if (Input.GetKeyUp(crouchKey)){
-            transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
-            crouching = false;
+        Ray ray = new Ray(orientation.position, transform.up);
+        RaycastHit hit = new RaycastHit();
+
+        if (!Input.GetKey(crouchKey) && crouching){
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.collider != null)
+                {
+                    if (hit.distance >= startYScale)
+                    {
+                        transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+                        crouching = false;
+                    }
+                    else
+                    {
+                        transform.localScale = new Vector3(transform.localScale.x, crouchYScale, transform.localScale.z);
+                        crouching = true;
+                    }
+                }
+            }
+            else
+            {
+                transform.localScale = new Vector3(transform.localScale.x, startYScale, transform.localScale.z);
+                crouching = false;
+            }
         }
 
         if (Input.GetKeyDown(sprintKey))
-            sprinting = true; 
-        
+        {
+            sprinting = true;
+        }
         if (Input.GetKeyUp(sprintKey))
+        {
             sprinting = false;
+        }
 
+        if (Vector3.Magnitude(new Vector3(rigid.velocity.x, 0, rigid.velocity.z)) > 8.5f)
+        {
+            UIManager.Instance.BG.BubbleGunanim.SetBool("Running", true);
+        }
+        else
+        {
+            UIManager.Instance.BG.BubbleGunanim.SetBool("Running", false);
+        }
     }
 
     private void StateHandler()
@@ -307,6 +346,21 @@ public class PlayerMove : MonoBehaviour, IDamageAbleProps
         rigid.velocity = new Vector3(rigid.velocity.x,0f,rigid.velocity.z);
 
         rigid.AddForce(transform.up * jumpForce, ForceMode.Impulse);
+
+        Ray ray = new Ray(transform.position, Vector3.down);
+        RaycastHit hit = new RaycastHit();
+
+        if(Physics.Raycast(ray, out hit))
+        {
+            if(hit.collider != null)
+            {
+                if(hit.collider.CompareTag("Water") && hit.distance <= playerHeight * 0.5f + 0.2f)
+                {
+                    GameObject Splash = Instantiate(WaterSplashPrefab, hit.point,Quaternion.identity);
+                    Splash.transform.up = hit.normal;
+                }
+            }
+        }
     }
 
     void ResetJump()
@@ -332,8 +386,35 @@ public class PlayerMove : MonoBehaviour, IDamageAbleProps
 
     public void OnDamaged(float dmg, Vector3 hitnNormal)
     {
-        GameManager.Instance.HP -= dmg;
-        GameManager.Instance.hitAlpha = Random.Range(0.2f,dmg/GameManager.Instance.MaxHP);
-        GameManager.Instance.BGun.Recoil(dmg);
+        if (!Invincible)
+        {
+            if (!GameManager.Instance.Dead)
+            {
+                GameManager.Instance.HP -= dmg;
+                if (GameManager.Instance.HP > 0)
+                {
+                    GameManager.Instance.hitAlpha = Random.Range(0.2f, dmg / GameManager.Instance.MaxHP);
+                    GameManager.Instance.BGun.Recoil(dmg);
+                }
+                else
+                {
+                    GameManager.Instance.Dead = true;
+                    GameManager.Instance.BGun.BubbleGunanim.SetTrigger("Dead");
+                    StartCoroutine(DeathSeq());
+                    rigid.AddForce(-orientation.forward * 3 + Vector3.up * jumpForce, ForceMode.Impulse);
+                }
+            }
+        }
+    }
+
+    IEnumerator DeathSeq()
+    {
+        BGMManager.Instance.ChangeMusic("GameOver");
+        AP.GetComponent<AudioSource>().PlayOneShot(AP.DeathClips[Random.Range(0,AP.DeathClips.Length)]);
+        yield return new WaitForSeconds(3f);
+        UIManager.Instance.GameOverAnim.gameObject.SetActive(true);
+        UIManager.Instance.GameOverAnim.SetTrigger("Reveal");
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 }

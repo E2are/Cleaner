@@ -1,3 +1,4 @@
+using DG.Tweening;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,7 +10,8 @@ public class BubbleGun : MonoBehaviour
     public Camera PlayerCam;
     public GameObject WeaponHolder;
     public Animator BubbleGunanim;
-    AudioSource AS;
+    [HideInInspector]
+    public AudioSource AS;
     Ray shootRay = new Ray();
     RaycastHit shootHit = new RaycastHit();
     [Header("Stats")]
@@ -25,6 +27,9 @@ public class BubbleGun : MonoBehaviour
     public GameObject HitEffect;
     public LineRenderer ShotPath;
     public GameObject FlashLight;
+    float WantedInnerAngle;
+    float WantedOuterAngle;
+    float WantedIntensity;
     bool lightOn = true;
     public AudioClip ShootSound;
     public AudioClip[] WaterSound;
@@ -47,11 +52,15 @@ public class BubbleGun : MonoBehaviour
         ShotPath.positionCount = 2;
 
         ShotPath.enabled = false;
+
+        WantedIntensity = 25;
+        WantedInnerAngle = 30;
+        WantedOuterAngle = 125;
     }
 
     private void Update()
     {
-        if (!GameManager.Instance.Paused && !GameManager.Instance.IsCinemachining)
+        if (!GameManager.Instance.Paused && !GameManager.Instance.IsCinemachining && !GameManager.Instance.Dead)
         {
             PlayerCam = GetComponent<Camera>();
 
@@ -72,12 +81,26 @@ public class BubbleGun : MonoBehaviour
 
             if (Input.GetKeyDown(ZoomKey))
             {
-                PlayerCam.GetComponent<PlayerCam>().DoFov(60f);
+                PlayerCam.GetComponent<PlayerCam>().DoFov(40f);
+                FlashLight.GetComponent<Light>().range = 160;
+                WantedIntensity = 50;
+
+                WantedInnerAngle = 15;
+                WantedOuterAngle = 40;
             }
             else if (Input.GetKeyUp(ZoomKey) || Input.GetKeyDown(ShootKey) && Input.GetKey(ZoomKey))
             {
                 PlayerCam.GetComponent<PlayerCam>().DoFov(80f);
+                FlashLight.GetComponent<Light>().range = 80;
+                WantedIntensity = 25;
+
+                WantedInnerAngle = 30;
+                WantedOuterAngle = 125;
             }
+
+            FlashLight.GetComponent<Light>().intensity = Mathf.Lerp(FlashLight.GetComponent<Light>().intensity, WantedIntensity,Time.deltaTime * 4);
+            FlashLight.GetComponent<Light>().innerSpotAngle = Mathf.Lerp(FlashLight.GetComponent<Light>().innerSpotAngle, WantedInnerAngle, Time.deltaTime * 4);
+            FlashLight.GetComponent<Light>().spotAngle = Mathf.Lerp(FlashLight.GetComponent<Light>().spotAngle, WantedOuterAngle, Time.deltaTime * 4);
         }
     }
 
@@ -91,7 +114,7 @@ public class BubbleGun : MonoBehaviour
 
     void Reload()
     {
-        if(Input.GetKeyDown(ReloadKey) && GameManager.Instance.RemainedCartridgeCount > 0 && !reloading)
+        if(Input.GetKeyDown(ReloadKey) && GameManager.Instance.RemainedCartridgeCount > 0 && !reloading && shootAble)
         {
             StopAllCoroutines();
             BubbleGunanim.SetTrigger("Reload");
@@ -128,25 +151,35 @@ public class BubbleGun : MonoBehaviour
     {
         if (GameManager.Instance.RemainAmmo_Amount > 0)
         {
-            ShotPath.enabled = true;
             if (Physics.Raycast(shootRay, out shootHit))
             {
-                IDamageAbleProps hitedProp = shootHit.collider.GetComponentInParent<IDamageAbleProps>();
-                if (hitedProp != null)
-                {
-                    crosshair.SetActive(true);
-                    hitedProp.OnDamaged(Damage, shootHit.normal);
-                }
-                Rigidbody hitedrigid = shootHit.collider.GetComponent<Rigidbody>();
-                if (hitedrigid != null)
-                {
-                    hitedrigid.AddForce((PlayerCam.transform.forward - shootHit.normal).normalized * Damage, ForceMode.Impulse);
-                }
+                if (shootHit.collider.CompareTag("Player")) return;
+                ShotPath.enabled = true;
                 Effect Eft = WaterSoundPool.Get();
                 Eft.transform.position = shootHit.point;
                 Eft.transform.localScale = new Vector3(Random.Range(0.1f, 0.2f), Random.Range(0.1f, 0.2f), 1);
                 Eft.transform.forward = shootHit.normal;
                 Eft.SetObjectPoolManager(WaterSoundPool);
+
+                IDamageAbleProps hitedProp = shootHit.collider.GetComponentInParent<IDamageAbleProps>();
+                if (hitedProp != null)
+                {
+                    crosshair.SetActive(true);
+                    hitedProp.OnDamaged(Damage, shootHit.normal);
+                    Eft.GetComponent<AudioSource>().minDistance = 10;
+                }
+                else
+                {
+                    Eft.GetComponent<AudioSource>().minDistance = 1;
+                }
+
+                Rigidbody hitedrigid = shootHit.collider.GetComponent<Rigidbody>();
+                if (hitedrigid != null)
+                {
+                    hitedrigid.AddForce((PlayerCam.transform.forward - shootHit.normal).normalized * Damage, ForceMode.Impulse);
+                }
+
+                
                 Eft.GetComponent<AudioSource>().spatialBlend = 1f;
                 Eft.GetComponent<AudioSource>().clip = WaterSound[Random.Range(0, WaterSound.Length)];
                 Eft.GetComponent<AudioSource>().Play();
@@ -175,7 +208,7 @@ public class BubbleGun : MonoBehaviour
     void RecoilRecover()
     {
         WeaponHolder.transform.localRotation = Quaternion.Slerp(WeaponHolder.transform.localRotation, Quaternion.identity, Time.deltaTime * 2f);
-        WeaponHolder.transform.localPosition = Vector3.Lerp(WeaponHolder.transform.localPosition, Vector3.zero, Time.deltaTime * 2f);
+        WeaponHolder.transform.localPosition = Vector3.Lerp(WeaponHolder.transform.localPosition, new Vector3(0,0,0), Time.deltaTime * 2f);
     }
 
     void LightTurn()

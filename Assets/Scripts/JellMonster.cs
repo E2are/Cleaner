@@ -48,8 +48,6 @@ public class JellMonster : MonoBehaviour, IDamageAbleProps, IMonster
     }
     void Start()
     {
-        Target = FindObjectOfType<PlayerMove>().orientation;
-
         agent = GetComponent<NavMeshAgent>();
 
         agent.speed = Speed;
@@ -68,26 +66,28 @@ public class JellMonster : MonoBehaviour, IDamageAbleProps, IMonster
     // Update is called once per frame
     void Update()
     {
-        if (!GameManager.Instance.Paused)
+        if (!GameManager.Instance.Paused && !GameManager.Instance.Dead)
         {
-            switch (currentstate)
+            if (!GameManager.Instance.IsCinemachining)
             {
-                case FSMState.idle:
-                    idle();
-                    break;
-                case FSMState.move:
-                    move();
-                    break;
-                case FSMState.attack:
-                    attack();
-                    break;
-                case FSMState.dead:
-                    dead();
-                    break;
+                switch (currentstate)
+                {
+                    case FSMState.idle:
+                        idle();
+                        break;
+                    case FSMState.move:
+                        move();
+                        break;
+                    case FSMState.attack:
+                        attack();
+                        break;
+                    case FSMState.dead:
+                        dead();
+                        break;
+                }
+
+                front_wall = new Ray(transform.position, (Target.transform.position - transform.position).normalized);
             }
-
-            front_wall = new Ray(transform.position, (Target.transform.position - transform.position).normalized);
-
             Appearence.transform.forward = Target.transform.forward;
 
             groundhited = Physics.Raycast(Appearence.transform.position, Vector3.down, GetComponentInChildren<CapsuleCollider>().height * 0.85f, LayerMask.GetMask("Platform"));
@@ -98,6 +98,11 @@ public class JellMonster : MonoBehaviour, IDamageAbleProps, IMonster
             else
                 ExTimer = 0;
         }
+    }
+
+    public void TargetSet(Transform target)
+    {
+        Target = target;
     }
 
     void idle()
@@ -112,7 +117,7 @@ public class JellMonster : MonoBehaviour, IDamageAbleProps, IMonster
         { 
             agent.SetDestination(transform.position);
             if (IdleSoundTimer < 0) {
-                AS.volume = 0.5f;
+                AS.volume = 0.2f;
                 AS.PlayOneShot(MonsterIdleClips[Random.Range(0, MonsterIdleClips.Length)]);
                 IdleSoundTimer = Random.Range(4f, 10f);
             }
@@ -131,10 +136,6 @@ public class JellMonster : MonoBehaviour, IDamageAbleProps, IMonster
         {
             currentstate = FSMState.attack;
             AtkTimer = AtkDelay / 1.2f;
-        }
-        else if(Vector3.Distance(transform.position, Target.transform.position) > NoticeRange && hit)
-        {
-            currentstate = FSMState.idle;
         }
         else
         {
@@ -228,7 +229,7 @@ public class JellMonster : MonoBehaviour, IDamageAbleProps, IMonster
         anim.SetBool("Attacking", false);
         rigid.constraints = RigidbodyConstraints.FreezeAll;
         agent.enabled = true;
-        AtkTimer = AtkDelay / 1.2f;
+        AtkTimer = AtkDelay / 2f;
         currentstate = FSMState.attack;
     }
 
@@ -236,6 +237,8 @@ public class JellMonster : MonoBehaviour, IDamageAbleProps, IMonster
     {
         AS.PlayOneShot(MonsterDeathClips[Random.Range(0,MonsterDeathClips.Length)]);
         GameObject DeathEft = Instantiate(DeathEffect,transform.position, Quaternion.identity);
+        DeathEffect.GetComponent<AudioSource>().clip = MonsterDeathClips[Random.Range(0, MonsterDeathClips.Length)];
+        DeathEffect.GetComponent<AudioSource>().Play();
         gameObject.SetActive(false);
     }
 

@@ -27,7 +27,7 @@ public class Boss : MonoBehaviour
             if(Timer < 0 )
             {
                 Timer = 1;
-                GameManager.Instance.PC.DoShake(Random.Range(0.05f,0.09f));
+                GameManager.Instance.PC.DoShake(Random.Range(0.01f,0.05f));
                 AS.pitch = Random.Range(0.3f, 1f);
                 AS.PlayOneShot(BossSounds[1]);
             }

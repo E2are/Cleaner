@@ -1,6 +1,7 @@
 using RayFire;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Pool;
 
@@ -38,7 +39,7 @@ public class Mop : MonoBehaviour
 
     void Update()
     {
-        if (!GameManager.Instance.Paused && !GameManager.Instance.IsCinemachining)
+        if (!GameManager.Instance.Paused && !GameManager.Instance.IsCinemachining && !GameManager.Instance.Dead)
         {
             Vector3 ShootPoint = transform.position;
             shootRay = new Ray(transform.position, transform.forward);
@@ -71,14 +72,14 @@ public class Mop : MonoBehaviour
         MopAnim.SetTrigger("Shoot");
         if (Physics.Raycast(shootRay,out shootHit))
         {
-            if(shootHit.distance <= Range)
+            if (shootHit.collider.CompareTag("Player")) return;
+            if (shootHit.distance <= Range)
             {
                 IDamageAbleProps hitedObject = shootHit.collider.GetComponentInParent<IDamageAbleProps>();
                 if (hitedObject != null)
                 {
                     crosshair.SetActive(true);
                     hitedObject.OnDamaged(Damage, shootHit.normal);
-                    Debug.Log("Hit");
                 }
 
                 Rigidbody hitedrigid = shootHit.collider.GetComponent<Rigidbody>();
@@ -87,14 +88,17 @@ public class Mop : MonoBehaviour
                     hitedrigid.AddForce((PlayerCam.transform.forward - shootHit.normal).normalized * Damage, ForceMode.Impulse);
                 }
 
-                Effect Eft = WaterSplashPool.Get();
-                Eft.transform.position = shootHit.point;
-                Eft.transform.localScale = new Vector3(1,1,1) * Random.Range(0.5f, 1);
-                Eft.transform.up = shootHit.normal;
-                Eft.SetObjectPoolManager(WaterSplashPool);
-                Eft.GetComponent<RayfireBomb>().Explode(0);
-                Eft.GetComponent<AudioSource>().clip = WaterSound[Random.Range(0, WaterSound.Length)];
-                Eft.GetComponent<AudioSource>().Play();
+                if (shootHit.collider.gameObject.layer != LayerMask.GetMask("Bomb"))
+                {
+                    Effect Eft = WaterSplashPool.Get();
+                    Eft.transform.position = shootHit.point;
+                    Eft.transform.localScale = new Vector3(1, 1, 1) * Random.Range(0.5f, 1);
+                    Eft.transform.up = shootHit.normal;
+                    Eft.SetObjectPoolManager(WaterSplashPool);
+                    Eft.GetComponent<RayfireBomb>().Explode(0.1f);
+                    Eft.GetComponent<AudioSource>().clip = WaterSound[Random.Range(0, WaterSound.Length)];
+                    Eft.GetComponent<AudioSource>().Play();
+                }
             }
         }
         crosshair.SetActive(false);

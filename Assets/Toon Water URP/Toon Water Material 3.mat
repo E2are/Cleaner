@@ -24,8 +24,16 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - Texture2D_662AC62F:
+        m_Texture: {fileID: 2800000, guid: e0e8561a19db1b841b346944d8b13461, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - Texture2D_821B987A:
         m_Texture: {fileID: 2800000, guid: ce0b76e65ef10314d9f55a9dd2284336, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - Texture2D_CC12F70E:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _BaseMap:
@@ -70,17 +78,22 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - Boolean_2918AA79: 0
-    - Vector1_20DB7652: 1.1
+    - BOOLEAN_537AC313: 0
+    - BOOLEAN_765B4C2: 0
+    - BOOLEAN_A060AF44: 0
+    - BOOLEAN_EC1EAD31: 0
+    - Boolean_2918AA79: 1
+    - Vector1_20DB7652: 0.9
     - Vector1_24CAEF48: 1
-    - Vector1_301E02E2: 512
-    - Vector1_31894ABB: 0
+    - Vector1_301E02E2: 10
+    - Vector1_31894ABB: 0.1
     - Vector1_3632ABA2: 0
-    - Vector1_45F25267: -0.5
+    - Vector1_45F25267: 1
     - Vector1_738B39CF: 0
+    - Vector1_7AF1AC78: 0.95
     - Vector1_854A7D8C: 0.25
-    - Vector1_9C73072A: 10
-    - Vector1_A524D234: 0
+    - Vector1_9C73072A: 3
+    - Vector1_A524D234: 3
     - Vector1_B9CC1720: 0
     - Vector1_E4F66A0: 0.03
     - Vector1_E71BB35E: 1
@@ -96,7 +109,7 @@ Material:
     - _GlossyReflections: 0
     - _Metallic: 0
     - _OcclusionStrength: 1
-    - _QueueControl: -1
+    - _QueueControl: 0
     - _QueueOffset: 0
     - _ReceiveShadows: 1
     - _Smoothness: 0.5
@@ -107,10 +120,10 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - Color_1139F668: {r: 0.15350643, g: 0.27672935, b: 0.12270071, a: 1}
+    - Color_1139F668: {r: 0, g: 0.06289297, b: 0, a: 1}
     - Color_198818EE: {r: 0, g: 0.023406863, b: 0.0018082919, a: 0.92156863}
     - Color_626750DD: {r: 2, g: 2, b: 2, a: 1}
-    - Color_77A2EDE9: {r: 31.626795, g: 31.626795, b: 31.626795, a: 1}
+    - Color_77A2EDE9: {r: 42.545425, g: 42.545425, b: 42.545425, a: 1}
     - Vector2_1E1B6943: {r: 1, g: 5, b: 0, a: 0}
     - Vector2_D06E76BC: {r: 0, g: 0.05, b: 1, a: 0}
     - Vector2_D26C9C89: {r: 0, g: 1, b: 2, a: 3}

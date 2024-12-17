@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
+using UnityEngine.SceneManagement;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
@@ -10,10 +10,9 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance = null;
     public bool IsCinemachining = true;
     public bool Paused = false;
-    [Header("References")]
-    [Space(5f)]
     [Header("Player Move Stats")]
     public PlayerMove PM;
+    public PlayerCam PC;
     [Header("Player Weapon Stats")]
     public BubbleGun BGun;
     public Mop Mop;
@@ -21,6 +20,7 @@ public class GameManager : MonoBehaviour
     [Header("PlayerStats")]
     public float HP = 100f;
     public float MaxHP = 100f;
+    public bool Dead = false;
     [HideInInspector]
     public float maxAmmo_Amount;
     public float RemainAmmo_Amount = 30;
@@ -28,16 +28,28 @@ public class GameManager : MonoBehaviour
     [Header("PlayerUI")]
     public CanvasGroup PlayerCanvas;
     public GameObject CutSceneUI;
-    [HideInInspector]
     public GameObject LoadSceneUI;
     Button[] Buttons;
     float fadeout = 0;
     public AudioMixer VolumeMaster;
     public Slider BGMSlider;
+    public float BGMVal = 0;
     public Slider SFXSlider;
-    
+    public float SFXVal = 0;
+    [Header("GameStates")]
+    public string current_SceneName;
+    public ScriptableSavePositions[] SavePositions;
+    public ScriptableSavePositions SavePosition;
+    public bool Ended = false;
+
+    [Header("Enemys")]
+    public GameObject MonsterSets;
+    [HideInInspector]
+    public IMonster[] Monsters;
+    Boss Boss;
+
     public bool BubblegunHolded = true;
-    [SerializeField] float swapDelay = 0.3f;
+    [SerializeField] float swapDelay = 0.1f;
     float swapTimer= 0;
     float expiretime = 1;
     [Header("Inputs")]
@@ -46,10 +58,9 @@ public class GameManager : MonoBehaviour
     public KeyCode MopKey = KeyCode.Alpha2;
     [Header("HitImage")]
     public float hitAlpha = 1;
-    private void Start()
-    {
-        DontDestroyOnLoad(this);
 
+    private void Awake()
+    {
         if (Instance == null)
         {
             Instance = this;
@@ -58,42 +69,54 @@ public class GameManager : MonoBehaviour
         {
             Destroy(this);
         }
+    }
+    private void Start()
+    {
+        DontDestroyOnLoad(this);
+
+        SceneManager.sceneLoaded += OnSceneLoaded;
 
         maxAmmo_Amount = RemainAmmo_Amount;
-        if (PM == null)
-            PM = FindObjectOfType<PlayerMove>();
 
-        if (BGun == null)
-            BGun = FindObjectOfType<BubbleGun>();
+        if (GameObject.Find("Monsters") != null)
+        {
+            MonsterSets = GameObject.Find("Monsters");
+            Monsters = MonsterSets.GetComponentsInChildren<IMonster>();
+            foreach (IMonster monster in Monsters)
+            {
+                monster.TargetSet(PC.transform);
+            }
+        }
 
-        if (PlayerCanvas == null)
-            PlayerCanvas = GameObject.Find("PlayerUI").GetComponent<CanvasGroup>();
-
-        if (CutSceneUI == null)
-            CutSceneUI = GameObject.Find("CutSceneUIs");
-
-        if (LoadSceneUI == null)
-            LoadSceneUI = GameObject.Find("LoadSceneUI");
-
-        if (BGMSlider == null)
-            BGMSlider = GameObject.Find("BGMVolume").GetComponent<Slider>();
-        
+        if (GameObject.Find("Boss") != null)
+        {
+            Boss = GameObject.Find("Boss").GetComponent<Boss>();
+        }
     }
 
-    private void OnLevelWasLoaded(int level)
+    private void OnEnable()
     {
-        if (PM == null)
+        SceneManager.sceneLoaded += OnSceneLoaded;
+    }
+
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
             PM = FindObjectOfType<PlayerMove>();
-        if (BGun == null)
+     
+            PC = FindObjectOfType<PlayerCam>();
+
             BGun = FindObjectOfType<BubbleGun>();
         
         if (GameObject.Find("PlayerUI") != null)
             PlayerCanvas = GameObject.Find("PlayerUI").GetComponent<CanvasGroup>();
-        Debug.Log(PlayerCanvas);
 
         if (GameObject.Find("CutSceneUIs"))
             CutSceneUI = GameObject.Find("CutSceneUIs");
-        Debug.Log(CutSceneUI);
 
         if (BGun != null)
             BGun.BubbleGunanim.SetBool("GunisHolded", BubblegunHolded);
@@ -101,27 +124,41 @@ public class GameManager : MonoBehaviour
         if (GameObject.Find("LoadSceneUI") != null)
         {
             LoadSceneUI = GameObject.Find("LoadSceneUI");
-            Buttons = LoadSceneUI.GetComponentsInChildren<Button>();
-            Buttons[0].onClick.AddListener(() => CallScene("title"));
-            Buttons[1].onClick.AddListener(() => ToQuit());
-
-            Slider[] slider = LoadSceneUI.GetComponentsInChildren<Slider>();
-            foreach(Slider sliderItem in slider)
-            {
-                sliderItem.onValueChanged.AddListener(delegate { SoundVolumeSet(); });
-            }
-
             Time.timeScale = 1;
             Cursor.lockState = CursorLockMode.Locked;
             Cursor.visible = false;
             Paused = false;
+            Slider[] SoundSliders = LoadSceneUI.GetComponentsInChildren<Slider>();
+            BGMSlider = SoundSliders[0];
+            SFXSlider = SoundSliders[1];
+            while(BGMSlider.value != BGMVal)
+            BGMSlider.value = BGMVal;
+            while(SFXSlider.value != SFXVal)
+            SFXSlider.value = SFXVal;
         }
 
-        if (GameObject.Find("BGMSlider") != null)
+        if (GameObject.Find("Monsters") != null)
         {
-            BGMSlider = GameObject.Find("BGMSlider").GetComponent<Slider>();
+            MonsterSets = GameObject.Find("Monsters");
+            Monsters = MonsterSets.GetComponentsInChildren<IMonster>();
+            foreach(IMonster monster in Monsters)
+            {
+                monster.TargetSet(PC.transform);
+            }
         }
-        
+
+        ChangeSaveData(scene.name);
+
+        if (GameObject.Find("Boss") != null)
+        {
+            Boss = GameObject.Find("Boss").GetComponent<Boss>();
+        }
+
+        if(PM != null)
+        StartCoroutine(ToTheSavePoint());
+
+        RemainAmmo_Amount = 33;
+
         fadeout = 0;
     }
 
@@ -136,9 +173,12 @@ public class GameManager : MonoBehaviour
                     LoadSceneUI.GetComponent<Animator>().SetTrigger("Reveal");
                     LoadSceneUI.GetComponent<Animator>().SetBool("AnimFullyLoaded", false);
                 }
+
                 Cursor.lockState = CursorLockMode.None;
                 Cursor.visible = true;
-                Time.timeScale = 0;
+                if(current_SceneName != "Title")
+                    Time.timeScale = 0;
+                
                 Paused = true;
             }
         }
@@ -150,14 +190,18 @@ public class GameManager : MonoBehaviour
         {
             if (LoadSceneUI.GetComponent<Animator>().GetBool("AnimFullyLoaded"))
             {
-                Time.timeScale = 1;
+                
                 if (LoadSceneUI != null)
                 {
                     LoadSceneUI.GetComponent<Animator>().SetTrigger("Hide");
                     LoadSceneUI.GetComponent<Animator>().SetBool("AnimFullyLoaded", false);
                 }
-                Cursor.lockState = CursorLockMode.Locked;
-                Cursor.visible = false;
+                if (!current_SceneName.Contains("Title"))
+                {
+                    Cursor.lockState = CursorLockMode.Locked;
+                    Cursor.visible = false;
+                    Time.timeScale = 1;
+                }
                 Paused = false;
             }
         }
@@ -165,55 +209,68 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if (!Paused)
+        if (Dead)
         {
-            if(BGun != null) {
-                if (swapDelay <= swapTimer && BGun.shootAble && BGun.BubbleGunanim.GetBool("WeaponIsHolded"))
+            hitAlpha = Mathf.Lerp(hitAlpha, 0, Time.deltaTime * 2);
+        }
+        if (Input.GetKeyDown(KeyCode.Escape)&&!Paused)
+            Pause();
+        if (Input.GetKeyDown(KeyCode.Escape)&&Paused)
+            UnPause();
+        if (Paused && Dead)
+        {
+            return; 
+        }
+
+        if(BGun != null) {
+            if (swapDelay <= swapTimer && BGun.shootAble && !BGun.reloading && BGun.BubbleGunanim.GetBool("WeaponIsHolded"))
+            {
+                if (Input.GetKeyDown(SwapKey))
                 {
-                    if (Input.GetKeyDown(SwapKey))
-                    {
-                        BubblegunHolded = !BubblegunHolded;
-                        swapTimer = 0;
-                        BGun.BubbleGunanim.SetBool("GunisHolded", BubblegunHolded);
-                        BGun.BubbleGunanim.SetBool("WeaponIsHolded",false);
-                    }
-                    if (Input.GetKeyDown(BubbleGunKey))
-                    {
-                        BubblegunHolded = true;
-                        swapTimer = 0;
-                        BGun.BubbleGunanim.SetBool("GunisHolded", true);
-                        BGun.BubbleGunanim.SetBool("WeaponIsHolded", false);
-                    }
-                    if (Input.GetKeyDown(MopKey))
-                    {
-                        BubblegunHolded = false;
-                        swapTimer = 0;
-                        BGun.BubbleGunanim.SetBool("GunisHolded", false);
-                        BGun.BubbleGunanim.SetBool("WeaponIsHolded", false);
-                    }
+                    BubblegunHolded = !BubblegunHolded;
+                    swapTimer = 0;
+                    BGun.BubbleGunanim.SetBool("GunisHolded", BubblegunHolded);
+                    BGun.BubbleGunanim.SetBool("WeaponIsHolded",false);
+                }
+                if (Input.GetKeyDown(BubbleGunKey))
+                {
+                    BubblegunHolded = true;
+                    swapTimer = 0;
+                    BGun.BubbleGunanim.SetBool("GunisHolded", true);
+                    BGun.BubbleGunanim.SetBool("WeaponIsHolded", false);
+                }
+                if (Input.GetKeyDown(MopKey))
+                {
+                    BubblegunHolded = false;
+                    swapTimer = 0;
+                    BGun.BubbleGunanim.SetBool("GunisHolded", false);
+                    BGun.BubbleGunanim.SetBool("WeaponIsHolded", false);
+                }
+            }
+            else
+            {
+                swapTimer += Time.deltaTime;
+            }
+
+            if (!BGun.BubbleGunanim.GetBool("WeaponIsHolded"))
+            {
+                if(expiretime < 0)
+                {
+                    BGun.BubbleGunanim.SetBool("WeaponIsHolded", true);
+                    expiretime = 0.2f;
                 }
                 else
                 {
-                    swapTimer += Time.deltaTime;
+                    expiretime -= Time.deltaTime;
                 }
-
-                if (!BGun.BubbleGunanim.GetBool("WeaponIsHolded"))
-                {
-                    if(expiretime < 0)
-                    {
-                        BGun.BubbleGunanim.SetBool("WeaponIsHolded", true);
-                        expiretime = 1;
-                    }
-                    else
-                    {
-                        expiretime -= Time.deltaTime;
-                    }
-                }
-            }            
-
-            hitAlpha = Mathf.Lerp(hitAlpha, 1, Time.deltaTime);
-    
+            }
         }
+        if (Ended)
+        {
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+        }
+        hitAlpha = Mathf.Lerp(hitAlpha, 1, Time.deltaTime);
 
         SoundVolumeSet();
     }
@@ -252,33 +309,63 @@ public class GameManager : MonoBehaviour
     {
         if (BGMSlider != null)
         {
-            float soundVal = BGMSlider.value;
+            BGMVal = BGMSlider.value;
 
-            if (soundVal == -40f)
+            if (BGMVal == -40f)
                 VolumeMaster.SetFloat("BGM", -80f);
             else
-                VolumeMaster.SetFloat("BGM", soundVal);
+                VolumeMaster.SetFloat("BGM", BGMVal);
         }
 
         if (SFXSlider != null)
         {
-            float soundVal = SFXSlider.value;
+            SFXVal = SFXSlider.value;
 
-            if (soundVal == -40f)
+            if (SFXVal == -40f)
                 VolumeMaster.SetFloat("SFX", -80f);
             else
-                VolumeMaster.SetFloat("SFX", soundVal);
+                VolumeMaster.SetFloat("SFX", SFXVal);
         }
     }
 
-    void CallScene(string wantedScene)
+    public void ResetPlayerStats()
     {
-        LoadingScene.LoadScene(wantedScene);
-        IsCinemachining = false;
-    }   
+        HP = MaxHP;
+        RemainedCartridgeCount = 3;
+        RemainAmmo_Amount = maxAmmo_Amount;
+        BubblegunHolded = true;
+        Dead = false;
+        Ended = false;
+    }
 
-    public void ToQuit()
+    public void ChangeSaveData(string SceneName)
     {
-        Application.Quit();
+        switch (SceneName)
+        {
+            case "Title":
+                Cursor.lockState = CursorLockMode.None;
+                Cursor.visible = true;
+                break;
+            case "Tutorial":
+                SavePosition = SavePositions[0];
+                break;
+            case "Stage1":
+                SavePosition = SavePositions[1];
+                break;
+        }
+    }
+
+    IEnumerator ToTheSavePoint()
+    {
+        yield return null;
+        HP = SavePosition.playerHP;
+        RemainedCartridgeCount = SavePosition.playerRemainedCartridge;
+        while (PM.transform.position != SavePosition.Points[SavePosition.current_SavePoint_Index])
+        {
+            PM.transform.position = SavePosition.Points[SavePosition.current_SavePoint_Index];
+            HP = SavePosition.playerHP;
+            RemainedCartridgeCount = SavePosition.playerRemainedCartridge;
+            yield return null;
+        }
     }
 }

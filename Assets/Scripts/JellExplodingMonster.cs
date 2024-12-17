@@ -12,6 +12,7 @@ public class JellExplodingMonster : MonoBehaviour, IDamageAbleProps, IMonster
     Animator anim;
     Rigidbody rigid;
     NavMeshAgent agent;
+    AudioSource AS;
     public GameObject DeathEffect;
     [Header("Stats")]
     public float hp = 10f;
@@ -26,6 +27,9 @@ public class JellExplodingMonster : MonoBehaviour, IDamageAbleProps, IMonster
     public float wall_detect_Range = 7f;
     Ray front_wall = new Ray();
     bool Trigger = false;
+    [Header("Sounds")]
+    public AudioClip stretching_skinSound;
+    public AudioClip PopSound; 
 
     public FSMState currentstate;
     public enum FSMState
@@ -38,7 +42,7 @@ public class JellExplodingMonster : MonoBehaviour, IDamageAbleProps, IMonster
     }
     void Start()
     {
-        Target = FindObjectOfType<PlayerMove>().orientation;
+        AS = GetComponent<AudioSource>();
 
         agent = GetComponent<NavMeshAgent>();
 
@@ -54,28 +58,35 @@ public class JellExplodingMonster : MonoBehaviour, IDamageAbleProps, IMonster
     // Update is called once per frame
     void Update()
     {
-        if (!GameManager.Instance.Paused)
+        if (!GameManager.Instance.Paused && !GameManager.Instance.Dead)
         {
-            switch (currentstate)
+            if (!GameManager.Instance.IsCinemachining)
             {
-                case FSMState.idle:
-                    idle();
-                    break;
-                case FSMState.move:
-                    move();
-                    break;
-                case FSMState.attack:
-                    attack();
-                    break;
-                case FSMState.dead:
-                    dead();
-                    break;
+                switch (currentstate)
+                {
+                    case FSMState.idle:
+                        idle();
+                        break;
+                    case FSMState.move:
+                        move();
+                        break;
+                    case FSMState.attack:
+                        attack();
+                        break;
+                    case FSMState.dead:
+                        dead();
+                        break;
+                }
+
+                front_wall = new Ray(transform.position, (Target.transform.position - transform.position).normalized);
             }
-
-            front_wall = new Ray(transform.position, (Target.transform.position - transform.position).normalized);
-
             Appearence.transform.forward = Target.transform.forward;
         }
+    }
+
+    public void TargetSet(Transform target)
+    {
+        Target = target;
     }
 
     void idle()
@@ -90,24 +101,18 @@ public class JellExplodingMonster : MonoBehaviour, IDamageAbleProps, IMonster
 
     void move()
     {
-        bool hit = Physics.Raycast(front_wall, wall_detect_Range, LayerMask.GetMask("Platform"));
-
-        if (Vector3.Distance(transform.position, Target.transform.position) < AttackRange && !hit)
+        if (Vector3.Distance(transform.position, Target.transform.position) < AttackRange)
         {
             currentstate = FSMState.attack;
-            AtkTimer = AtkDelay / 1.2f;
         }
-        else if(Vector3.Distance(transform.position, Target.transform.position) > NoticeRange && hit)
+        else if(Vector3.Distance(transform.position, Target.transform.position) > NoticeRange)
         {
             currentstate = FSMState.idle;
         }
         else
         {
-            if (!attacking)
-            {
-                rigid.velocity = Vector3.zero;
-                agent.SetDestination(Target.transform.position);
-            }
+            rigid.velocity = Vector3.zero;
+            agent.SetDestination(Target.transform.position);   
         }
     }
 
@@ -115,15 +120,7 @@ public class JellExplodingMonster : MonoBehaviour, IDamageAbleProps, IMonster
     {
         if (agent != null)
             agent.SetDestination(Target.transform.position);
-        if (AtkTimer >= AtkDelay && !attacking)
-        {
-            anim.SetTrigger("Attack");
-            AtkTimer = 0;
-        }
-        else if(!attacking)
-        {
-            AtkTimer += Time.deltaTime;
-        }
+        anim.SetTrigger("Attack");
     }
 
     public void Attack()
@@ -133,9 +130,12 @@ public class JellExplodingMonster : MonoBehaviour, IDamageAbleProps, IMonster
 
     public IEnumerator AttackSeq()
     {
-        yield return null;
+        AS.PlayOneShot(stretching_skinSound);
+        yield return new WaitUntil(()=>anim.GetCurrentAnimatorStateInfo(0).normalizedTime >= 1.0f);
         GameObject Explode = Instantiate(DeathEffect,Appearence.transform.position,Quaternion.identity);
         Explode.transform.localScale = Vector3.one * AttackRange;
+        Explode.GetComponent<AudioSource>().clip = PopSound;
+        Explode.GetComponent<AudioSource>().Play();
         Collider[] Explosion = Physics.OverlapSphere(transform.position, AttackRange);
         foreach(Collider collider in Explosion)
         {
@@ -148,6 +148,7 @@ public class JellExplodingMonster : MonoBehaviour, IDamageAbleProps, IMonster
                 collider.GetComponent<Rigidbody>().AddExplosionForce(Damage / 2, transform.position, AttackRange);
             }
         }
+        AS.PlayOneShot(PopSound);
         gameObject.SetActive(false);
     }
 
@@ -170,7 +171,10 @@ public class JellExplodingMonster : MonoBehaviour, IDamageAbleProps, IMonster
 
     void dead()
     {
-        GameObject DeathEft = Instantiate(DeathEffect,Appearence.transform.position, Quaternion.identity);
+        GameObject Explode = Instantiate(DeathEffect, Appearence.transform.position, Quaternion.identity);
+        Explode.transform.localScale = Vector3.one * AttackRange;
+        Explode.GetComponent<AudioSource>().clip = PopSound;
+        Explode.GetComponent<AudioSource>().Play();
         gameObject.SetActive(false);
     }
 
