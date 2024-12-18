@@ -35,6 +35,11 @@ public class PlayerCam : MonoBehaviour
             CameraHolder.rotation = Quaternion.Euler(mouseY--, mouseX, 0);
         }
 
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            DoShake();
+        }
+
         transform.localPosition = Vector3.Lerp(transform.localPosition, Vector3.zero, Time.deltaTime * 2f);
         
         MiniMapCamera.transform.position = new Vector3(Orientation.position.x,3.5f,Orientation.position.z);
@@ -67,5 +72,7 @@ public class PlayerCam : MonoBehaviour
     {
         if(!GameManager.Instance.Dead)
         GetComponent<Camera>().DOShakePosition(1, shakeAmount, 10,90,false,ShakeRandomnessMode.Full);
+
+        transform.localPosition = Vector3.ClampMagnitude(transform.localPosition, 0.1f);
     }
 }
