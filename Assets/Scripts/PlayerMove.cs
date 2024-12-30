@@ -96,10 +96,6 @@ public class PlayerMove : MonoBehaviour, IDamageAbleProps
 
     private void Update()
     {
-        if(Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.I))
-        {
-            Invincible = true;
-        }
         if (!GameManager.Instance.Dead)
         {
             if (!GameManager.Instance.Paused)

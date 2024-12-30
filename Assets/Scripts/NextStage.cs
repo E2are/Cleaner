@@ -194,9 +194,13 @@ public class NextStage : MonoBehaviour
     IEnumerator LoadingProsess()
     {
         if (wantedScene == "Ending") GameManager.Instance.Ended = true;
-        GameManager.Instance.ChangeSaveData(wantedScene);
-        GameManager.Instance.SavePosition.playerHP = 100;
-        GameManager.Instance.SavePosition.playerRemainedCartridge = 3;
+        if (wantedScene != "Tutorial")
+        {
+            GameManager.Instance.ChangeSaveData(wantedScene);
+            GameManager.Instance.SavePosition.current_SavePoint_Index = 0;
+            GameManager.Instance.SavePosition.playerHP = 100;
+            GameManager.Instance.SavePosition.playerRemainedCartridge = 3;
+        }
         yield return new WaitForSeconds(0.01f);
         Time.timeScale = 0;
         if (LoadingSceneUI != null)

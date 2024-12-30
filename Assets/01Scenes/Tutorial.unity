@@ -729,12 +729,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!95 &79710011 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 3243566010655242846, guid: 96dcca7bcd784f0448ca285e8b00bab0,
-    type: 3}
-  m_PrefabInstance: {fileID: 4597823880884652459}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &83268910
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2082,6 +2076,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   BG: {fileID: 0}
   HP: {fileID: 0}
+  DelayedHP: {fileID: 0}
   HitedImage: {fileID: 0}
   RemainedAmmoAmount_Image: {fileID: 0}
   RemainedCartridgeCount_Text: {fileID: 0}
@@ -2755,12 +2750,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5518671859752898487, guid: 33b7d88da72bb14448733adeedd15b0f,
     type: 3}
   m_PrefabInstance: {fileID: 219535183}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &224467304 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9036375822424657430, guid: 96dcca7bcd784f0448ca285e8b00bab0,
-    type: 3}
-  m_PrefabInstance: {fileID: 4597823880884652459}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &245014736
 PrefabInstance:
@@ -6195,7 +6184,7 @@ RectTransform:
   - {fileID: 630710333}
   - {fileID: 792801267}
   - {fileID: 358720751}
-  m_Father: {fileID: 1344095076}
+  m_Father: {fileID: 3193210426488206821}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -7256,7 +7245,7 @@ RectTransform:
   - {fileID: 1474108074}
   - {fileID: 996223964}
   - {fileID: 125118586}
-  m_Father: {fileID: 1344095076}
+  m_Father: {fileID: 3193210426488206821}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
@@ -13164,18 +13153,6 @@ MonoBehaviour:
   CDCart: {fileID: 1888126764}
   CTrack: {fileID: 1781547973}
   VCamera: {fileID: 679989746}
---- !u!1 &1179386508 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4351844621446422523, guid: 96dcca7bcd784f0448ca285e8b00bab0,
-    type: 3}
-  m_PrefabInstance: {fileID: 4597823880884652459}
-  m_PrefabAsset: {fileID: 0}
---- !u!225 &1186905580 stripped
-CanvasGroup:
-  m_CorrespondingSourceObject: {fileID: 1566902429843226730, guid: 96dcca7bcd784f0448ca285e8b00bab0,
-    type: 3}
-  m_PrefabInstance: {fileID: 4597823880884652459}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1188843979
 GameObject:
   m_ObjectHideFlags: 0
@@ -14499,6 +14476,11 @@ PrefabInstance:
       propertyPath: m_AnchorMax.y
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 1566902429843226730, guid: 96dcca7bcd784f0448ca285e8b00bab0,
+        type: 3}
+      propertyPath: m_Alpha
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2658853889166943872, guid: 96dcca7bcd784f0448ca285e8b00bab0,
         type: 3}
       propertyPath: m_AnchorMax.x
@@ -14704,12 +14686,6 @@ PrefabInstance:
       addedObject: {fileID: 531343799}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 96dcca7bcd784f0448ca285e8b00bab0, type: 3}
---- !u!224 &1344095076 stripped
-RectTransform:
-  m_CorrespondingSourceObject: {fileID: 3193210425684162182, guid: 96dcca7bcd784f0448ca285e8b00bab0,
-    type: 3}
-  m_PrefabInstance: {fileID: 1344095075}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1362355712
 GameObject:
   m_ObjectHideFlags: 0
@@ -16032,7 +16008,9 @@ MonoBehaviour:
   maxAmmo_Amount: 0
   RemainAmmo_Amount: 33
   RemainedCartridgeCount: 0
-  PlayerCanvas: {fileID: 1186905580}
+  PlayerCanvases:
+  - {fileID: 0}
+  - {fileID: 0}
   CutSceneUI: {fileID: 976039886}
   LoadSceneUI: {fileID: 505380872}
   VolumeMaster: {fileID: 24100000, guid: 2101e9d0e6724f341951439f84bfa50d, type: 2}
@@ -22183,7 +22161,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PlayerCam: {fileID: 2101337015}
   WeaponHolder: {fileID: 202103885}
-  BubbleGunanim: {fileID: 79710011}
+  BubbleGunanim: {fileID: 1354939639648154613}
   AS: {fileID: 0}
   Damage: 2
   RapidShootSpeed: 0.08
@@ -22192,7 +22170,7 @@ MonoBehaviour:
   reloading: 0
   ReCoilKickBack: {x: 0.02, y: 0.03, z: 0}
   ShakeAmount: 0.2
-  crosshair: {fileID: 1179386508}
+  crosshair: {fileID: 264054133503432272}
   HitEffect: {fileID: 5137123306192418792, guid: a918dac0c63d7fa4da2e32b1b6c24b8e,
     type: 3}
   ShotPath: {fileID: 0}
@@ -22222,13 +22200,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PlayerCam: {fileID: 2101337015}
   WeaponHolder: {fileID: 202103885}
-  MopAnim: {fileID: 79710011}
+  MopAnim: {fileID: 1354939639648154613}
   Damage: 5
   Range: 3
   AttackDelay: 0.5
   ReCoilKickBack: {x: 0.2, y: 0.3, z: 1}
   ShakeAmount: 0.1
-  crosshair: {fileID: 1179386508}
+  crosshair: {fileID: 264054133503432272}
   HitEffect: {fileID: 8205706795460263314, guid: 6c2b85a84ec2e7c418a3f999b86ecac5,
     type: 3}
   HitSound: {fileID: 8300000, guid: 450670c8796c5c148860c401c8c6c0ee, type: 3}
@@ -22254,8 +22232,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PlayerCam: {fileID: 2101337015}
   WeaponHolder: {fileID: 202103885}
-  BombAnim: {fileID: 79710011}
-  bombStats: {fileID: 224467304}
+  BombAnim: {fileID: 1354939639648154613}
+  bombStats: {fileID: 4803484391365724093}
   dmg: 1
   AttackDelay: 0.18
   stackedBomb: 0
@@ -22502,6 +22480,18 @@ Light:
   m_UseViewFrustumForShadowCasterCull: 1
   m_ShadowRadius: 0
   m_ShadowAngle: 0
+--- !u!1 &264054133503432272 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4351844621446422523, guid: 96dcca7bcd784f0448ca285e8b00bab0,
+    type: 3}
+  m_PrefabInstance: {fileID: 4597823880884652459}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &1354939639648154613 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 3243566010655242846, guid: 96dcca7bcd784f0448ca285e8b00bab0,
+    type: 3}
+  m_PrefabInstance: {fileID: 4597823880884652459}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &2355518289284274452
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22596,6 +22586,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b87317c02434d9543917f6efedbe391d, type: 3}
+--- !u!224 &3193210426488206821 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 3193210425684162182, guid: 96dcca7bcd784f0448ca285e8b00bab0,
+    type: 3}
+  m_PrefabInstance: {fileID: 1344095075}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &4597823880884652459
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -22787,6 +22783,12 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 96dcca7bcd784f0448ca285e8b00bab0, type: 3}
+--- !u!1 &4803484391365724093 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 9036375822424657430, guid: 96dcca7bcd784f0448ca285e8b00bab0,
+    type: 3}
+  m_PrefabInstance: {fileID: 4597823880884652459}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

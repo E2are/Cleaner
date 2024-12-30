@@ -34,12 +34,6 @@ public class PlayerCam : MonoBehaviour
             mouseY = Mathf.Clamp(mouseY, -85f, 90f);
             CameraHolder.rotation = Quaternion.Euler(mouseY--, mouseX, 0);
         }
-
-        if (Input.GetKeyDown(KeyCode.K))
-        {
-            DoShake();
-        }
-
         transform.localPosition = Vector3.Lerp(transform.localPosition, Vector3.zero, Time.deltaTime * 2f);
         
         MiniMapCamera.transform.position = new Vector3(Orientation.position.x,3.5f,Orientation.position.z);

@@ -11,13 +11,14 @@ public class UIManager : MonoBehaviour
     public BubbleGun BG;
 
     public Slider HP;
+    public Slider DelayedHP;
     public Image HitedImage;
     public Image RemainedAmmoAmount_Image;
     public TMP_Text RemainedCartridgeCount_Text;
     public Animator GameOverAnim;
     private void Awake()
     {
-        if(Instance == null)
+        if (Instance == null)
         {
             Instance = this;
         }
@@ -25,6 +26,7 @@ public class UIManager : MonoBehaviour
         {
             Destroy(this);
         }
+        Application.targetFrameRate = 60;
     }
     private void Start()
     {
@@ -49,6 +51,17 @@ public class UIManager : MonoBehaviour
     {
         if(HP !=null)
         HP.value = GameManager.Instance.HP / GameManager.Instance.MaxHP;
+        if(DelayedHP != null && HP != null)
+        {
+            if(DelayedHP.value < HP.value)
+            {
+                DelayedHP.value = HP.value;
+            }
+            else
+            {
+                DelayedHP.value = Mathf.Lerp(DelayedHP.value, HP.value, Time.deltaTime);
+            }
+        }
 
         if(HitedImage != null )
         HitedImage.material.SetFloat("_Desintegration_Value_1", GameManager.Instance.hitAlpha);

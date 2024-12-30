@@ -147,10 +147,10 @@ MonoBehaviour:
       m_Center: {x: 0, y: 0, z: 0}
       m_Extent: {x: 0, y: 0, z: 0}
   meshDemolition:
-    amount: 35
-    variation: 10
+    amount: 3
+    variation: 0
     depthFade: 0.01
-    contactBias: 1
+    contactBias: 0
     seed: 3
     useShatter: 0
     addChildren: 1
@@ -293,6 +293,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   DropObject: {fileID: 0}
+  DestroyObj: {fileID: 0}
   DestroySound:
   - {fileID: 8300000, guid: c8fd26c8d4533624c83e8a9b420ccba8, type: 3}
   mass: 30

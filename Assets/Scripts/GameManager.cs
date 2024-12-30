@@ -26,10 +26,9 @@ public class GameManager : MonoBehaviour
     public float RemainAmmo_Amount = 30;
     public int RemainedCartridgeCount = 3;
     [Header("PlayerUI")]
-    public CanvasGroup PlayerCanvas;
+    public CanvasGroup[] PlayerCanvases = new CanvasGroup[2];
     public GameObject CutSceneUI;
     public GameObject LoadSceneUI;
-    Button[] Buttons;
     float fadeout = 0;
     public AudioMixer VolumeMaster;
     public Slider BGMSlider;
@@ -106,14 +105,17 @@ public class GameManager : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-            PM = FindObjectOfType<PlayerMove>();
+        PM = FindObjectOfType<PlayerMove>();
      
-            PC = FindObjectOfType<PlayerCam>();
+        PC = FindObjectOfType<PlayerCam>();
 
-            BGun = FindObjectOfType<BubbleGun>();
-        
+        BGun = FindObjectOfType<BubbleGun>();
+
         if (GameObject.Find("PlayerUI") != null)
-            PlayerCanvas = GameObject.Find("PlayerUI").GetComponent<CanvasGroup>();
+        {
+            PlayerCanvases[0] = GameObject.Find("PlayerUI").GetComponent<CanvasGroup>();
+            PlayerCanvases[1] = GameObject.Find("PlayerUI (1)").GetComponent<CanvasGroup>();
+        }
 
         if (GameObject.Find("CutSceneUIs"))
             CutSceneUI = GameObject.Find("CutSceneUIs");
@@ -276,7 +278,7 @@ public class GameManager : MonoBehaviour
     }
     private void FixedUpdate()
     {
-        if (PlayerCanvas != null)
+        if (PlayerCanvases != null)
         {
             Cinemachining();
         }
@@ -289,7 +291,10 @@ public class GameManager : MonoBehaviour
             if (fadeout <= 0.99f)
             {
                 fadeout = Mathf.Lerp(fadeout, 1, Time.unscaledDeltaTime);
-                PlayerCanvas.alpha = 0.9f - fadeout;
+                foreach (CanvasGroup PlayerCanvas in PlayerCanvases)
+                {
+                    PlayerCanvas.alpha = 0.9f - fadeout;
+                }
             }
         }
         else
@@ -297,7 +302,10 @@ public class GameManager : MonoBehaviour
             if (fadeout >= 0.01f)
             {
                 fadeout = Mathf.Lerp(fadeout, 0, Time.unscaledDeltaTime);
-                PlayerCanvas.alpha = 1f - fadeout;
+                foreach (CanvasGroup PlayerCanvas in PlayerCanvases)
+                {
+                    PlayerCanvas.alpha = 1f - fadeout;
+                }
             }
         }
         if(CutSceneUI != null)
