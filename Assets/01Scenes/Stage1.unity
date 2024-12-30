@@ -6999,13 +6999,13 @@ NavMeshAgent:
   m_Enabled: 1
   m_AgentTypeID: -902729914
   m_Radius: 0.5
-  m_Speed: 10
+  m_Speed: 11
   m_Acceleration: 8
   avoidancePriority: 50
   m_AngularSpeed: 120
   m_StoppingDistance: 0
   m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
+  m_AutoBraking: 0
   m_AutoRepath: 1
   m_Height: 1.0000001
   m_BaseOffset: 0.5
@@ -11827,6 +11827,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: PlayerUI
       objectReference: {fileID: 0}
+    - target: {fileID: 4150084049212548673, guid: 96dcca7bcd784f0448ca285e8b00bab0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4818901227591068945, guid: 96dcca7bcd784f0448ca285e8b00bab0,
         type: 3}
       propertyPath: m_Camera
@@ -13576,7 +13581,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_Sprite: {fileID: -2413806693520163455, guid: a86470a33a6bf42c4b3595704624658b,
     type: 3}
-  m_Color: {r: 1, g: 0, b: 0, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
@@ -24666,6 +24671,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: capy
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 4b973c6f30563cc4e8dbac30d869e07b,
+        type: 3}
+      propertyPath: m_Layer
+      value: 8
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -33711,6 +33721,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: PlayerUI (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 4150084049212548673, guid: 96dcca7bcd784f0448ca285e8b00bab0,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5201541485143739199, guid: 96dcca7bcd784f0448ca285e8b00bab0,
         type: 3}
