@@ -273,7 +273,7 @@ Material:
     - _Cutoff: 0.5
     - _DepthOffsetEnable: 0
     - _Desintegration_Speed_1: 0.7
-    - _Desintegration_Value_1: 1
+    - _Desintegration_Value_1: 0.3370848
     - _DetailAlbedoScale: 1
     - _DetailNormalMapScale: 1
     - _DetailNormalScale: 1
